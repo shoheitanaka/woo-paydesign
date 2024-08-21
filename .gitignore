@@ -1,0 +1,17 @@
+# OS X metadata
+.DS_Store
+
+# Windows junk
+Thumbs.db
+
+# remove composer.lock
+composer.lock
+
+# remove .idea directory
+.idea/*
+
+# remove .scss map data
+*.css.map
+
+#php storm file
+.idea/
