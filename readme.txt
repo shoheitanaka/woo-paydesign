@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=info@art
 Tags: woocommerce, ecommerce, e-commerce, Japanese
 Requires at least: 5.0.0
 Tested up to: 6.6.1
-Stable tag: 1.3.1
+Stable tag: 1.4.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -12,7 +12,7 @@ metaps PAYMENT gateway payment for WooCommerce.
 
 == Description ==
 
-This plugin extends the WooCommerce shop plugin for metaps PAYMENT (before PAYDESIGN) in Japan.
+This plugin extends the WooCommerce shop plugin for metaps PAYMENT in Japan.
 
 Notice: If "Lawson/Ministop" is checked in the convenience store payment column, please also check "Seicomart". You cannot use "Seicomart" unless you check the box.
 
@@ -34,9 +34,9 @@ Notice: If "Lawson/Ministop" is checked in the convenience store payment column,
 
 = Automatic installation =
 
-Automatic installation is the easiest option as WordPress handles the file transfers itself and you don’t need to leave your web browser. To do an automatic install of Woo PAYDESIGN, log in to your WordPress dashboard, navigate to the Plugins menu and click Add New.
+Automatic installation is the easiest option as WordPress handles the file transfers itself and you don’t need to leave your web browser. To do an automatic install of metaps Payment for WooCommerce, log in to your WordPress dashboard, navigate to the Plugins menu and click Add New.
 
-In the search field type “Woo PAYDESIGN” and click Search Plugins. Once you’ve found our eCommerce plugin you can view details about it such as the the point release, rating and description. Most importantly of course, you can install it by simply clicking “Install Now”.
+In the search field type “metaps Payment for WooCommerce” and click Search Plugins. Once you’ve found our eCommerce plugin you can view details about it such as the the point release, rating and description. Most importantly of course, you can install it by simply clicking “Install Now”.
 
 = Manual installation =
 The manual installation method involves downloading our plugin and uploading it to your webserver via your favourite FTP application.
@@ -47,10 +47,13 @@ A: Here<br />
 <a href="https://wordpress.org/support/plugin/woo-paydesign/">(wordpress.org Support Forum)https://wordpress.org/support/plugin/woo-paydesign/</a>
 
 == Screenshots ==
-1. Admin setting page for Paydesign
+1. Admin setting page for metaps Payment for WooCommerce
 2. Admin setting page at Credit Token
 
 == Changelog ==
+
+= 1.4.0 - 2024-08-** =
+* Dev - EMV-3D Secure integration.
 
 = 1.3.1 - 2024-07-25 =
 * Fixed - Fixed a bug in the Metaps notification receiving process when using PHP 8.0 or higher.

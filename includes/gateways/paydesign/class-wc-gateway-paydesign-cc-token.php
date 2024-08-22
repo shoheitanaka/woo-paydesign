@@ -365,10 +365,13 @@ jQuery(function($){
 			$connect_url = PAYDESIGN_CS_SALES_URL;
 			$order->add_order_note( __('Finished to send payment data to metaps PAYMENT.', 'woo-paydesign') );
 
-			$response = $paydesign_request->paydesign_post_request( $order ,$connect_url , $setting_data);
+			$response = $paydesign_request->paydesign_post_request( $order ,$connect_url , $setting_data,);
 			
 			if( isset($response[0]) and substr($response[0],0,2) == 'OK' ){
-				if(isset($response[1]))add_post_meta( $order_id, '_transaction_id', $response[1], true );
+				if(isset($response[1])){
+					$order->set_transaction_id( $response[1] );
+					$order->save();
+				}
 
 				// Update user id
 				if($this->user_id_payment == 'yes')update_user_meta($user->ID, '_paydesign_user_id' , $customer_id);
@@ -619,9 +622,9 @@ function paydesign_cc_token_received(){
 		$pd_order_id = $_GET['SID'];
 		$prefix_order = get_option( 'wc_paydesign_prefix_order' );
 		$order_id = str_replace($prefix_order, '', $pd_order_id);
-		$order = new WC_Order( $order_id );
+		$order = wc_get_order( $order_id );
 		$order->add_order_note( __( 'Received Payment complete signal from metaps PAYMENT.', 'woo-paydesign' ) );
-		$order_payment_method  = get_post_meta( $order_id, '_payment_method', true );
+		$order_payment_method  = $order->get_payment_method();
 		$payment_title = __( 'Credit Card (Paydesign)', 'woo-paydesign' );
 		if($order_payment_method == 'paydesign_cc_token'){
 			$order->update_status( 'processing', sprintf( __( 'Payment of %s was complete.', 'woo-paydesign' ) , $payment_title ) );

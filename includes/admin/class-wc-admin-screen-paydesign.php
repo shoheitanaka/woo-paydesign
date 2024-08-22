@@ -52,6 +52,13 @@ class WC_Admin_Screen_PAYDESIGN {
 	 * @var string
 	 */
 	public $post_prefix;
+	
+	/**
+	 * Enabled.
+	 *
+	 * @var string
+	 */
+	public $enabled;
 
 	/**
 	 * Constructor
@@ -99,11 +106,12 @@ class WC_Admin_Screen_PAYDESIGN {
        * Check if SSL is enabled and notify the user.
        */
       function paydesign_ssl_check() {
-		  if(isset($this->enabled)){
-              if ( get_option( 'woocommerce_force_ssl_checkout' ) == 'no' && $this->enabled == 'yes' ) {
-              echo '<div class="error"><p>' . sprintf( __('metaps Payment Payment is enabled and the <a href="%s">force SSL option</a> is disabled; your checkout is not secure! Please enable SSL and ensure your server has a valid SSL certificate.', 'woo-paydesign' ), admin_url( 'admin.php?page=wc-settings&tab=checkout' ) ) . '</p></div>';
-            }
-		  }
+		  if( isset( $this->enabled ) ){
+                if ( get_option( 'woocommerce_force_ssl_checkout' ) == 'no' && $this->enabled == 'yes' ) {
+				   $admin_url = admin_url( 'admin.php?page=wc-settings&tab=checkout' );
+                   echo '<div class="error"><p>' . sprintf( __('metaps Payment Payment is enabled and the <a href="%s">force SSL option</a> is disabled; your checkout is not secure! Please enable SSL and ensure your server has a valid SSL certificate.', 'woo-paydesign' ), esc_url( $admin_url ) ) . '</p></div>';
+                }
+		    }
 	  }
 
 	function wc_setting_paydesign_init(){
@@ -202,7 +210,7 @@ class WC_Admin_Screen_PAYDESIGN {
 	 */
 	public function jp4wc_paydesign_notice_url(){
 		$notice_url = WP_PLUGIN_URL.'/woo-paydesign/notice-url.php';
-		echo __( 'Please use following url for URL for payment completion notification.', 'woo-paydesign' ).'<br /><strong>'.$notice_url.'</strong>';
+		echo __( 'Please use following url for URL for payment completion notification.', 'woo-paydesign' ).'<br /><strong>'. esc_url( $notice_url ) .'</strong>';
 	}
 	/**
 	 * Credit Card Payment option.

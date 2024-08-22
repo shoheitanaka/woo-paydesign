@@ -243,7 +243,8 @@ class WC_Gateway_PAYDESIGN_PE extends WC_Payment_Gateway {
 				}
 			}
 			if(isset($response[6])){
-				add_post_meta( $order_id, '_paydesign_payment_url', wc_clean( $response[6] ), true );
+				$order->add_meta_data( '_paydesign_payment_url', wc_clean( $response[6] ), true );
+				$order->save_meta_data();
 				$order->add_order_note( __( 'Housing agency code : ', 'woo-paydesign' ).substr($response[3],0,5).', '.__( 'Customer Number : ', 'woo-paydesign' ).substr($response[3],6,20).', '.__( 'Authorization number : ', 'woo-paydesign' ).substr($response[3],27,6) );
 				$order->add_order_note( __( 'Confirmation URL : ', 'woo-paydesign' ).$response[6] );
 			}
@@ -329,8 +330,8 @@ class WC_Gateway_PAYDESIGN_PE extends WC_Payment_Gateway {
      * Get Convini Payment details and place into a list format
      */
     private function paydesign_pe_details( $order_id = '' ) {
-		$order = new WC_Order( $order_id );
-		$payment_url = get_post_meta($order_id, '_paydesign_payment_url',true);
+		$order = wc_get_order( $order_id );
+		$payment_url = $order->get_meta( '_paydesign_payment_url',true );
 
 		echo __('Payment Information URL : ', 'woo-paydesign').$payment_url.'<br />'.PHP_EOL;
 		if(isset($this->payeasy_email_desc)){
@@ -393,10 +394,10 @@ function paydesign_pe_detail( $order ){
 
 	$payment_setting = get_option('woocommerce_paydesign_pe_settings');
 	$payment_limit_description =$payment_setting['payment_limit_description'];
-	$payment_url = get_post_meta( $order_id, '_paydesign_payment_url', true);
-	$transaction_id = get_post_meta( $order_id, '_transaction_id', true);
+	$payment_url = $order->get_meta( '_paydesign_payment_url', true);
+	$transaction_id = $order->get_transaction_id();
 
-	if( get_post_meta( $order_id, '_payment_method', true ) == 'paydesign_pe' ){
+	if( $order->get_payment_method() == 'paydesign_pe' ){
 		echo '<header class="title"><h3>'.__('Payment Detail', 'woo-paydesign').'</h3></header>';
 		echo '<table class="shop_table order_details">';
 		echo '<tr><th>'.__('Payment Detail', 'woo-paydesign').'</th><td>'.__( 'Housing agency code : ', 'woo-paydesign' ).substr($transaction_id,0,5).'<br />'.__( 'Customer Number : ', 'woo-paydesign' ).substr($transaction_id,6,20).'<br />'.__( 'Authorization number : ', 'woo-paydesign' ).substr($transaction_id,27,6).'<br /></td></tr>'.PHP_EOL;
@@ -426,7 +427,7 @@ function paydesign_pe_recieved(){
 		$order_id = str_replace($prefix_order, '', $pd_order_id);
 		$order = new WC_Order( $order_id );
 		$order_status = $order->get_status();
-		$order_payment_method  = get_post_meta( $order_id, '_payment_method', true );
+		$order_payment_method  = $order->get_payment_method();
 		if(isset($_GET['TIME']) and isset($order_status) and $order_status != 'processing' and $order_payment_method == 'paydesign_pe'){
 			// Mark as processing (payment complete)
 			$order->update_status( 'processing', sprintf( __( 'Payment of %s was complete.', 'woo-paydesign' ) , __( 'Payeasey Payment (Paydesign)', 'woo-paydesign' ) ) );

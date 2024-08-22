@@ -3,13 +3,13 @@
  * Plugin Name: metaps PAYMENT for WooCommerce
  * Plugin URI: https://wordpress.org/plugins/woo-paydesign/
  * Description: metaps PAYMENT (before PAYDESIGN) gateway payment for WooCommerce. 
- * Version: 1.3.1
+ * Version: 1.4.0
  * Author: Artisan Workshop
  * Author URI: https://wc.artws.info/
  * Requires at least: 5.0.0
  * Tested up to: 6.6.1
  * WC requires at least: 2.6.0
- * WC tested up to: 9.1.3
+ * WC tested up to: 9.2.1
  *
  * Text Domain: woo-paydesign
  * Domain Path: /i18n/
@@ -61,6 +61,9 @@ class WC4JP_PAYDESIGN{
 		// metaps PAYMENT for WooCommerce version
 		define( 'WC4JP_METAPS_VERSION', $this->version );
         define( 'WC_METAPS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
+		// handle HPOS compatibility
+		add_action( 'before_woocommerce_init', [ $this, 'metaps_handle_hpos_compatibility' ] );
+
 	}
 
 	/**
@@ -214,6 +217,21 @@ class WC4JP_PAYDESIGN{
 	protected function define( $name, $value ) {
 		if ( ! defined( $name ) ) {
 			define( $name, $value );
+		}
+	}
+
+	/**
+	 * Declares HPOS compatibility if the plugin is compatible with HPOS.
+	 *
+	 * @internal
+	 *
+	 * @since 2.6.0
+	 */
+	public function metaps_handle_hpos_compatibility() {
+
+		if ( class_exists( \Automattic\WooCommerce\Utilities\FeaturesUtil::class ) ) {
+            $slug = dirname( plugin_basename( __FILE__ ) );
+			\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables',trailingslashit( $slug ) . $slug . '.php' , true );
 		}
 	}
 }

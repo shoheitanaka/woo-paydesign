@@ -102,6 +102,13 @@ class WC_Gateway_PAYDESIGN_CC extends WC_Payment_Gateway {
 	public $array_number_of_payments;
 
 	/**
+	 * EMV 3D Secure
+	 *
+	 * @var string
+	 */
+	public $emv_tds;
+
+	/**
 	 * Constructor for the gateway.
 	 *
 	 * @access public
@@ -364,7 +371,7 @@ class WC_Gateway_PAYDESIGN_CC extends WC_Payment_Gateway {
 			wc_reduce_stock_levels( $order_id );
 			$order->add_order_note( __('Finished to send payment data to metaps PAYMENT.', 'woo-paydesign') );
 
-			$get_url = $this->metaps_request->get_post_to_paydesign( $order ,$connect_url , $setting_data, $thanks_url, $this->debug );
+			$get_url = $this->metaps_request->get_post_to_paydesign( $order ,$connect_url , $setting_data, $thanks_url, $this->debug, $this->emv_tds );
 
 			return array(
 				'result'   => 'success',
@@ -372,7 +379,7 @@ class WC_Gateway_PAYDESIGN_CC extends WC_Payment_Gateway {
 			);
 		}else{ // When use user id payment
 			$connect_url = PAYDESIGN_CC_SALES_USER_URL;
-			$response = $this->metaps_request->paydesign_post_request( $order, $connect_url, $setting_data, $this->debug );
+			$response = $this->metaps_request->paydesign_post_request( $order, $connect_url, $setting_data, $this->debug, $this->emv_tds );
 			if( isset($response[0]) and substr($response[0],0,2) == 'OK' ){
 				update_user_meta($user->ID, '_paydesign_user_id' , $customer_id);
 				$order->add_order_note( __('Finished to send payment data to metaps PAYMENT.', 'woo-paydesign') );
@@ -392,6 +399,23 @@ class WC_Gateway_PAYDESIGN_CC extends WC_Payment_Gateway {
 				);
 			}
 		}
+	}
+
+    /**
+     * Validate frontend fields.
+     *
+     * Validate payment fields on the frontend.
+     *
+     * @return bool
+     */
+    public function validate_fields(){
+		if( $this->emv_tds == 'yes' ){
+			if ( empty( $_POST['billing_phone'] ) && empty( $_POST['billing_email'] ) ) {
+				wc_add_notice( __( 'A phone number or email address is required for credit card payments.', 'woo-paydesign' ), 'error' );
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**
@@ -601,8 +625,8 @@ function paydesign_cc_return(){
 	if(isset($_GET['pd']) == 'return' and isset($_GET['sid'])){
 		$prefix_order = get_option( 'wc_paydesign_prefix_order' );
 		$order_id = str_replace($prefix_order, '', $_GET['sid']);
-		$order = new WC_Order( $order_id );
-		$order_payment_method  = get_post_meta( $order_id, '_payment_method', true );
+		$order = wc_get_order( $order_id );
+		$order_payment_method  = $order->get_payment_method();
 		if($order_payment_method == 'paydesign_cc'){
 			wc_increase_stock_levels( $order_id );
 			$order->update_status( 'cancelled', __( 'This order is cancelled, because of the return from metaps PAYMENT site.', 'woo-paydesign' ) );

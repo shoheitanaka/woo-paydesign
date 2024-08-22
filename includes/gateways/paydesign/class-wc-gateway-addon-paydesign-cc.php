@@ -130,7 +130,7 @@ class WC_Gateway_PAYDESIGN_CC_Addons extends WC_Gateway_PAYDESIGN_CC {
 			$setting_data['kakutei'] = '0';//auth = 0
 		}
 		$connect_url = PAYDESIGN_CC_SALES_USER_URL;
-		$response = $paydesign_request->paydesign_post_request( $order, $connect_url, $setting_data );
+		$response = $paydesign_request->paydesign_post_request( $order, $connect_url, $setting_data, $this->emv_tds );
 		if( isset( $response[0] ) and substr( $response[0], 0, 2 ) == 'OK' ){
             // Payment complete
             if( $order->get_status() != 'pending') {

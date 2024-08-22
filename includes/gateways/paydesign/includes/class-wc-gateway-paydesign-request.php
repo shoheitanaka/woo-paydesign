@@ -29,9 +29,14 @@ class WC_Gateway_PAYDESIGN_Request {
 	 * Get metaps PAYMENT Args for passing to PP
 	 *
 	 * @param WC_Order $order
+	 * @param string $connect_url
+	 * @param array $setting
+	 * @param string $thanks_url
+	 * @param string $debug
+	 * @param string $emv_tds
 	 * @return string URL
 	 */
-	public function get_post_to_paydesign( $order , $connect_url , $setting, $thanks_url = null, $debug = 'yes') {
+	public function get_post_to_paydesign( $order , $connect_url , $setting, $thanks_url = null, $debug = 'yes', $emv_tds = 'no' ) {
 		global $woocommerce;
 		//Set States Information
 		$states = WC()->countries->get_allowed_country_states();
@@ -41,6 +46,7 @@ class WC_Gateway_PAYDESIGN_Request {
 		// Customer parameter
 		$post_data = $this->paydesign_address($post_data, $order, $states);
 		$post_data = $this->paydesign_setting($post_data, $order, $setting);
+		if( $emv_tds == 'yes' )$post_data = $this->emv_tds_parameter( $post_data, $order );
 		$get_source = http_build_query($post_data);
 		$get_url = $connect_url.'?'.$get_source;
 
@@ -73,16 +79,16 @@ class WC_Gateway_PAYDESIGN_Request {
 			$billing_yomigana_first_name = $order->billing_yomigana_first_name;
 		}else{
 			$post_data['MAIL'] = $order->get_billing_email();
-			$post_data['NAME1'] = mb_convert_encoding($order->get_billing_last_name(), "SJIS");
-			$post_data['NAME2'] = mb_convert_encoding($order->get_billing_first_name(), "SJIS");
+			$post_data['NAME1'] = mb_convert_encoding( $order->get_billing_last_name(), "SJIS" );
+			$post_data['NAME2'] = mb_convert_encoding( $order->get_billing_first_name(), "SJIS" );
 			$post_data['YUBIN1'] = str_replace('-','',$order->get_billing_postcode());
 			$state = $states['JP'][$order->get_billing_state()];
-			$post_data['ADR1'] = mb_convert_encoding($state.$order->get_billing_city(), "SJIS");
-			$post_data['TEL'] = substr(str_replace('-','',$order->get_billing_phone()),0,11);
+			$post_data['ADR1'] = mb_convert_encoding( $state.$order->get_billing_city(), "SJIS" );
+			$post_data['TEL'] = substr(str_replace( '-', '', $order->get_billing_phone()), 0, 11 );
 			$billing_address_1 = $order->get_billing_address_1();
 			$billing_address_2 = $order->get_billing_address_2();
-			$billing_yomigana_last_name = get_post_meta( $order->get_id(), '_billing_yomigana_last_name', true );
-			$billing_yomigana_first_name = get_post_meta( $order->get_id(), '_billing_yomigana_first_name', true );
+			$billing_yomigana_last_name = $order->get_meta( $order->get_id(), '_billing_yomigana_last_name', true );
+			$billing_yomigana_first_name = $order->get_meta( $order->get_id(), '_billing_yomigana_first_name', true );
 		}
 		if(strlen($post_data['NAME1'])>20)$post_data['NAME1'] = substr($post_data['NAME1'],0,20);
 		if(strlen($post_data['NAME2'])>20)$post_data['NAME2'] = substr($post_data['NAME2'],0,20);
@@ -318,8 +324,10 @@ class WC_Gateway_PAYDESIGN_Request {
 		}
 		$post_data['BILL_ADDR_STATE'] = substr( $order->get_billing_state(), 2 );
 		$post_data['BILL_ADDR_ZIP'] = str_replace('-','',$order->get_billing_postcode());
-		$post_data['BILL_ADDR_CITY'] = mb_convert_encoding( $order->get_billing_city(), 'SJIS' );
-		$post_data['BILL_ADDR_LINE'] = mb_convert_encoding( $order->get_billing_address_1(), 'SJIS' );
+		$billing_city = $order->get_billing_city();
+		$billing_address_1 = $order->get_billing_address_1();
+		$post_data['BILL_ADDR_CITY'] = mb_convert_encoding( $billing_city, "SJIS" );
+		$post_data['BILL_ADDR_LINE'] = mb_convert_encoding( $billing_address_1, "SJIS" );
 		$countries = new WC_Countries();
 		$post_data['TEL_COUNTRY'] = substr( $countries->get_country_calling_code( $country_code ), 1 );
 
@@ -396,10 +404,10 @@ class WC_Gateway_PAYDESIGN_Request {
 	 * @param string $connect_url 
 	 * @param object $order
 	 * @param string $debug
-	 * @param bool $emv_tds
+	 * @param string $emv_tds
 	 * @return string response
 	 */
-	public function paydesign_post_request( $order, $connect_url, $setting, $debug = 'yes', $emv_tds = false ) {
+	public function paydesign_post_request( $order, $connect_url, $setting, $debug = 'yes', $emv_tds = 'no' ) {
 		global $woocommerce;
 		//Set States Information
 		$states = WC()->countries->get_allowed_country_states();
@@ -407,7 +415,7 @@ class WC_Gateway_PAYDESIGN_Request {
 		$post_data = array();
 		$post_data = $this->paydesign_setting( $post_data, $order, $setting );
 		$post_data = $this->paydesign_address( $post_data, $order, $states );
-		if( $emv_tds )$post_data = $this->emv_tds_parameter( $post_data, $order );
+		if( $emv_tds == 'yes' )$post_data = $this->emv_tds_parameter( $post_data, $order );
 
 		$get_source = http_build_query( $post_data );
 		$get_url = $connect_url.'?'.$get_source;
@@ -429,7 +437,7 @@ class WC_Gateway_PAYDESIGN_Request {
 		}
 		$request_array = array();
 		foreach ($data as $key => $value){
-			$request_array[$key] = mb_convert_encoding($value, 'UTF-8', 'SJIS');
+			$request_array[$key] = mb_convert_encoding( $value, 'UTF-8', 'SJIS' );
 		}
 		$send_message .= __('The request post data is shown below.', 'woo-paydesign' )."\n".$this->jp4wc_framework->jp4wc_array_to_message( $request_array );
 		$this->jp4wc_framework->jp4wc_debug_log( $send_message, $debug, 'wc-metaps' );

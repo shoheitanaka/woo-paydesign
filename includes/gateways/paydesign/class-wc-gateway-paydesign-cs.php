@@ -326,12 +326,6 @@ class WC_Gateway_PAYDESIGN_CS extends WC_Payment_Gateway {
 		$prefix_order = get_option( 'wc_paydesign_prefix_order' );
 
 		$order = wc_get_order( $order_id );
-		$user = wp_get_current_user();
-		if($order->user_id){
-			$customer_id = $prefix_order.$user->ID;
-		}else{
-			$customer_id = $prefix_order.$order_id.'-user';
-		}
 		//Setting $send_data
 		$setting_data = array();
 
@@ -346,7 +340,10 @@ class WC_Gateway_PAYDESIGN_CS extends WC_Payment_Gateway {
 		$response = $this->metaps_request->paydesign_post_request( $order, $connect_url, $setting_data );
 //		$order->add_order_note( 'test-001' );
 		if( isset($response[0]) and substr($response[0],0,2) == 'OK' ){
-			if(isset($setting_data['store']))add_post_meta( $order_id, '_paydesign_cvs_id', wc_clean( $setting_data['store'] ), true );
+			if(isset($setting_data['store'])){
+				$order->add_meta_data( '_paydesign_cvs_id', wc_clean( $setting_data['store'] ), true );
+				$order->save_meta_data();
+			}
 			if(isset($response[3])){
 				if(version_compare( WC_VERSION, '2.7', '<' )){
 					add_post_meta( $order_id, '_transaction_id', $response[3], true );
@@ -354,7 +351,10 @@ class WC_Gateway_PAYDESIGN_CS extends WC_Payment_Gateway {
 					$order->set_transaction_id($response[3]);
 				}
 			}
-			if(isset($response[6]))add_post_meta( $order_id, '_paydesign_payment_url', wc_clean( $response[6] ), true );
+			if(isset($response[6])){
+				$order->add_meta_data( '_paydesign_payment_url', wc_clean( $response[6] ), true );
+				$order->save_meta_data();
+			}
 			if($setting_data['store'] == 1){
 				$cvs_trans_title = __( 'Receipt number : ', 'woo-paydesign' );
 			}elseif($setting_data['store'] == 2){
@@ -404,7 +404,7 @@ class WC_Gateway_PAYDESIGN_CS extends WC_Payment_Gateway {
 		$status = $order->get_status();
 		$data['IP'] = $this->ip_code;
 		$data['SID'] = $prefix_order.$order_id;
-		$data['STORE'] = get_post_meta( $order_id, '_paydesign_cvs_id', true );
+		$data['STORE'] = $order->get_meta( '_paydesign_cvs_id', true );
 		$response = $this->metaps_request->paydesign_request( $data ,$cansel_connect_url ,$order );
 		if(substr($response,0,10) == 'C-CHECK:OK' and $amount == $order->get_total()){
 			return true;
@@ -448,9 +448,10 @@ class WC_Gateway_PAYDESIGN_CS extends WC_Payment_Gateway {
 	private function paydesign_cs_details( $order_id = '' ) {
 //		global $woocommerce;
 		$cvs = $this->cs_stores;
-		$cvs_id = get_post_meta( $order_id, '_paydesign_cvs_id', true );
-		$payment_url = get_post_meta( $order_id, '_paydesign_payment_url', true);
-		$transaction_id = get_post_meta( $order_id, '_transaction_id', true);
+		$order = wc_get_order( $order_id );
+		$cvs_id = $order->get_meta( '_paydesign_cvs_id', true );
+		$payment_url = $order->get_meta( '_paydesign_payment_url', true );
+		$transaction_id = $order->get_transaction_id();
 
 		if($cvs_id == 1){
 			$cvs_trans_title = __( 'Receipt number : ', 'woo-paydesign' );
@@ -502,11 +503,12 @@ function paydesign_cs_detail( $order ){
 	$payment_setting = get_option('woocommerce_paydesign_cs_settings');
 	$payment_limit_description =$payment_setting['payment_limit_description'];
 	$order_id = version_compare( WC_VERSION, '2.7', '<' ) ? $order->id : $order->get_id();
-	$cvs_id = get_post_meta( $order_id, '_paydesign_cvs_id', true );
-	$payment_url = get_post_meta( $order_id, '_paydesign_payment_url', true);
+	$order = wc_get_order( $order_id );
+	$cvs_id = $order->get_meta( '_paydesign_cvs_id', true );
+	$payment_url = $order->get_meta( '_paydesign_payment_url', true);
 	$transaction_id = version_compare( WC_VERSION, '2.7', '<' ) ? get_post_meta( $order_id, '_transaction_id', true) : $order->get_transaction_id();
 
-	if( get_post_meta( $order_id, '_payment_method', true ) == 'paydesign_cs' ){
+	if( $order->get_payment_method() == 'paydesign_cs' ){
 		echo '<header class="title"><h3>'.__('Payment Detail', 'woo-paydesign').'</h3></header>';
 		echo '<table class="shop_table order_details">';
 		echo '<tr><th>'.__('CVS Payment', 'woo-paydesign').'</th><td>'.$cs_stores[$cvs_id].'</td></tr>'.PHP_EOL;
@@ -535,9 +537,9 @@ function paydesign_cs_recieved(){
 		$pd_order_id = $_GET['SID'];
 		$prefix_order = get_option( 'wc_paydesign_prefix_order' );
 		$order_id = str_replace($prefix_order, '', $pd_order_id);
-		$order = new WC_Order( $order_id );
+		$order = wc_get_order( $order_id );
 		$order_status = $order->get_status();
-		$order_payment_method  = get_post_meta( $order_id, '_payment_method', true );
+		$order_payment_method  = $order->get_payment_method();
 		if(isset($_GET['TIME']) and isset($order_status) and $order_status != 'processing' and $order_payment_method == 'paydesign_cs'){
 			// Mark as processing (payment complete)
 			$order->update_status( 'processing', sprintf( __( 'Payment of %s was complete.', 'woo-paydesign' ) , __( 'Convenience Store Payment (Paydesign)', 'woo-paydesign' ) ) );
