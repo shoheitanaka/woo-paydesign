@@ -33,7 +33,7 @@ class WC4JP_PAYDESIGN{
 	 *
 	 * @var string
 	 */
-	public $version = '1.3.1';
+	public $version = '1.4.0';
 
 	/**
 	 * metaps PAYMENT for WooCommerce Framework version.
