@@ -379,8 +379,8 @@ class WC_Gateway_PAYDESIGN_CS extends WC_Payment_Gateway {
 				'redirect' => $this->get_return_url( $order ),
 			);
 		}else{
-			$order->update_status( 'cancelled', __( 'This order is cancelled, because of Payment error.'.mb_convert_encoding($response[2], "UTF-8", "auto"), 'woo-paydesign' ) );
-			wc_add_notice( __('Payment error:', 'woo-paydesign') . mb_convert_encoding($response[2], "UTF-8", "auto"), 'error' );
+			$order->update_status( 'cancelled', __( 'This order is cancelled, because of Payment error.'.mb_convert_encoding($response[2], "UTF-8", "sjis"), 'woo-paydesign' ) );
+			wc_add_notice( __('Payment error:', 'woo-paydesign') . mb_convert_encoding($response[2], "UTF-8", "sjis"), 'error' );
 			return;
 		}
 	}

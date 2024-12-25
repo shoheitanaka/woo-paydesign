@@ -25,7 +25,7 @@ if (!class_exists('\\ArtisanWorkshop\\WooCommerce\\PluginFramework\\v2_0_12\\JP4
         public $text_array;
 
         /**
-         * allowed html tag setting.
+         * Allowed html tag setting.
          *
          * @var array
          */
